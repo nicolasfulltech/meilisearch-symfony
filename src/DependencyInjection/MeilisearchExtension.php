@@ -33,6 +33,12 @@ final class MeilisearchExtension extends Extension
 
         foreach ($config['indices'] as $index => $indice) {
             $config['indices'][$index]['settings'] = $this->findReferences($config['indices'][$index]['settings']);
+
+            if ($indice['type'] === 'orm') {
+
+            } elseif ($indice['type'] === 'orm_aggregator') {
+
+            }
         }
 
         $container->setParameter('meili_url', $config['url'] ?? null);

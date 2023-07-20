@@ -6,6 +6,7 @@ namespace Meilisearch\Bundle\Command;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Meilisearch\Bundle\Collection;
+use Meilisearch\Bundle\DocumentProvider\DocumentProviderInterface;
 use Meilisearch\Bundle\Exception\InvalidSettingName;
 use Meilisearch\Bundle\Exception\TaskException;
 use Meilisearch\Bundle\Model\Aggregator;
@@ -27,12 +28,19 @@ final class MeilisearchImportCommand extends IndexCommand
     protected Client $searchClient;
     protected ManagerRegistry $managerRegistry;
 
-    public function __construct(SearchService $searchService, ManagerRegistry $managerRegistry, Client $searchClient)
+    /**
+     * @var iterable<DocumentProviderInterface>
+     */
+    private iterable $documentProviders;
+
+    /**
+     * @param iterable<DocumentProviderInterface> $documentProviders
+     */
+    public function __construct(SearchService $searchService, iterable $documentProviders)
     {
         parent::__construct($searchService);
 
-        $this->managerRegistry = $managerRegistry;
-        $this->searchClient = $searchClient;
+        $this->documentProviders = $documentProviders;
     }
 
     public static function getDefaultName(): string
@@ -42,7 +50,7 @@ final class MeilisearchImportCommand extends IndexCommand
 
     public static function getDefaultDescription(): string
     {
-        return 'Import given entity into search engine';
+        return 'Import documents into search engine';
     }
 
     protected function configure(): void
