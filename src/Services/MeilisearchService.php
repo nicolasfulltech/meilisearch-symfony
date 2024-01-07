@@ -156,7 +156,7 @@ final class MeilisearchService implements SearchService
     ): array {
         $this->assertIsSearchable($className);
 
-        $ids = $this->engine->search($query, $this->searchableAs($className), $searchParams);
+        $ids = $this->engine->search($query, $this->searchableAs($className), $searchParams + ['limit' => $this->configuration['nbResults']]);
         $results = [];
 
         // Check if the engine returns results in "hits" key
@@ -220,6 +220,21 @@ final class MeilisearchService implements SearchService
             }
 
             $results[$className] = $indexResults;
+        }
+
+        return $results;
+    }
+
+    public function rawMultiSearch(array $queries = [], array $searchParams = []): array
+    {
+        $results = [];
+        foreach ($queries as $query) {
+            $results = array_merge($results, array_map(
+                fn (array $r) => [
+                    'indexUid' => $query->getClassName(),
+                    ...$r,
+                ],
+                $this->rawSearch($query->getClassName(), $searchParams['q'], $searchParams)['hits']));
         }
 
         return $results;

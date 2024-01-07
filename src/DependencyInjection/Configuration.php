@@ -22,10 +22,10 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('prefix')
                     ->defaultNull()
                 ->end()
-                ->scalarNode('nbResults')
+                ->integerNode('nbResults')
                     ->defaultValue(20)
                 ->end()
-                ->scalarNode('batchSize')
+                ->integerNode('batchSize')
                     ->defaultValue(500)
                 ->end()
                 ->arrayNode('doctrineSubscribedEvents')
@@ -61,6 +61,16 @@ final class Configuration implements ConfigurationInterface
                             ->end()
                             ->arrayNode('settings')
                                 ->info('Configure indices settings, see: https://www.meilisearch.com/docs/reference/api/settings')
+                                ->beforeNormalization()
+                                    ->always()
+                                    ->then(static function (array $value) {
+                                        if (isset($value['distinctAttribute']) && !is_array($value['distinctAttribute'])) {
+                                            $value['distinctAttribute'] = (array) $value['distinctAttribute'];
+                                        }
+
+                                        return $value;
+                                    })
+                                ->end()
                                 ->arrayPrototype()
                                     ->variablePrototype()->end()
                                 ->end()

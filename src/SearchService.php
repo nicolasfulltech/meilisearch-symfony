@@ -69,6 +69,13 @@ interface SearchService
     public function multiSearch(ObjectManager $objectManager, array $queries): array;
 
     /**
+     * @param list<SearchQuery> $queries
+     *
+     * @return array<non-empty-string, list<object>>
+     */
+    public function rawMultiSearch(array $queries, array $searchParams): array;
+
+    /**
      * Get the raw search result.
      *
      * @see https://docs.meilisearch.com/reference/api/search.html#response
