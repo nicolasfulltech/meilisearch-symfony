@@ -12,7 +12,6 @@ use Meilisearch\Bundle\Tests\Entity\Comment;
 use Meilisearch\Bundle\Tests\Entity\Post;
 use Meilisearch\Bundle\Tests\Entity\Tag;
 use Meilisearch\Endpoints\Indexes;
-use Meilisearch\Exceptions\ApiException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -25,10 +24,6 @@ class SearchTest extends BaseKernelTestCase
     protected Application $application;
     protected Indexes $index;
 
-    /**
-     * @throws ApiException
-     * @throws \Exception
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -54,7 +49,7 @@ class SearchTest extends BaseKernelTestCase
 
         $this->createTag(['id' => 99]);
 
-        $command = $this->application->find('meili:import');
+        $command = $this->application->find('meilisearch:import');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             '--indices' => $this->index->getUid(),
@@ -99,7 +94,7 @@ class SearchTest extends BaseKernelTestCase
             $testDataTitles[] = $this->createPost()->getTitle();
         }
 
-        $command = $this->application->find('meili:import');
+        $command = $this->application->find('meilisearch:import');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             '--indices' => $this->index->getUid(),
@@ -113,6 +108,7 @@ class SearchTest extends BaseKernelTestCase
         $resultTitles = array_map(fn (Post $post) => $post->getTitle(), $results);
         $this->assertEqualsCanonicalizing(array_slice($testDataTitles, 2, 2), $resultTitles);
     }
+
 
     public function testMultiSearch(): void
     {
@@ -179,5 +175,22 @@ class SearchTest extends BaseKernelTestCase
         self::assertCount(4, $result);
         self::assertCount(2, array_filter($result, fn (array $hits) => 'Meilisearch\Bundle\Tests\Entity\Comment' === $hits['indexUid']));
         self::assertCount(2, array_filter($result, fn (array $hits) => 'Meilisearch\Bundle\Tests\Entity\Post' === $hits['indexUid']));
+    }
+  
+    public function testSearchNbResults(): void
+    {
+        for ($i = 0; $i < 15; ++$i) {
+            $this->createPost();
+        }
+
+        $command = $this->application->find('meilisearch:import');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--indices' => $this->index->getUid(),
+        ]);
+
+        $results = $this->searchService->search($this->objectManager, Post::class, 'test');
+
+        $this->assertCount(12, $results);
     }
 }
