@@ -139,8 +139,7 @@ class SearchTest extends BaseKernelTestCase
 
         $this->entityManager->flush();
 
-        $firstTask = $this->client->getTasks()->getResults()[0];
-        $this->client->waitForTask($firstTask['uid']);
+        $this->waitForAllTasks();
 
         $result = $this->searchService->multiSearch($this->entityManager, [
             (new SearchQuery(Post::class))
@@ -153,5 +152,32 @@ class SearchTest extends BaseKernelTestCase
             Post::class => $posts,
             Comment::class => $comments,
         ], $result);
+    }
+
+    public function testRawMultiSearch(): void
+    {
+        for ($i = 0; $i < 5; ++$i) {
+            $post = new Post(['title' => $i < 2 ? "Test post $i" : "Good post $i"]);
+            $this->entityManager->persist($post);
+
+            $comment = (new Comment())
+                ->setPost($post)
+                ->setContent($i < 2 ? "Test comment $i" : "Good comment $i");
+
+            $this->entityManager->persist($comment);
+        }
+
+        $this->entityManager->flush();
+
+        $this->waitForAllTasks();
+
+        $result = $this->searchService->rawMultiSearch(
+            [new SearchQuery(Post::class), new SearchQuery(Comment::class)],
+            ['q' => 'test']
+        );
+
+        self::assertCount(4, $result);
+        self::assertCount(2, array_filter($result, fn (array $hits) => 'Meilisearch\Bundle\Tests\Entity\Comment' === $hits['indexUid']));
+        self::assertCount(2, array_filter($result, fn (array $hits) => 'Meilisearch\Bundle\Tests\Entity\Post' === $hits['indexUid']));
     }
 }

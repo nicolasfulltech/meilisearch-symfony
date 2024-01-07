@@ -225,6 +225,21 @@ final class MeilisearchService implements SearchService
         return $results;
     }
 
+    public function rawMultiSearch(array $queries = [], array $searchParams = []): array
+    {
+        $results = [];
+        foreach ($queries as $query) {
+            $results = array_merge($results, array_map(
+                fn (array $r) => [
+                    'indexUid' => $query->getClassName(),
+                    ...$r,
+                ],
+                $this->rawSearch($query->getClassName(), $searchParams['q'], $searchParams)['hits']));
+        }
+
+        return $results;
+    }
+
     public function rawSearch(
         string $className,
         string $query = '',
