@@ -109,7 +109,6 @@ class SearchTest extends BaseKernelTestCase
         $this->assertEqualsCanonicalizing(array_slice($testDataTitles, 2, 2), $resultTitles);
     }
 
-
     public function testMultiSearch(): void
     {
         $posts = [];
@@ -176,7 +175,7 @@ class SearchTest extends BaseKernelTestCase
         self::assertCount(2, array_filter($result, fn (array $hits) => 'Meilisearch\Bundle\Tests\Entity\Comment' === $hits['indexUid']));
         self::assertCount(2, array_filter($result, fn (array $hits) => 'Meilisearch\Bundle\Tests\Entity\Post' === $hits['indexUid']));
     }
-  
+
     public function testSearchNbResults(): void
     {
         for ($i = 0; $i < 15; ++$i) {
